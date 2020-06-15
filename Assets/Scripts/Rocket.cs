@@ -8,8 +8,9 @@ public class Rocket : MonoBehaviour
 {
     Rigidbody rigidBody;
     AudioSource audioSource;
-    [SerializeField] float rcsThrust = 100f;
-    [SerializeField] float thrustPower = 10f;
+    private bool m_isAxisInUse = false;
+    [SerializeField] float rcsThrust = 200f;
+    [SerializeField] float thrustPower = 20f;
     [SerializeField] AudioClip engineSound;
     [SerializeField] AudioClip explosionSound;
     [SerializeField] AudioClip levelCompleteSound;
@@ -22,12 +23,14 @@ public class Rocket : MonoBehaviour
     enum State { Alive, Dying, Transcending }
     State state = State.Alive;
 
+    bool collisionDisabled = false;
+
     // Start is called before the first frame update
     void Start()
     {
         rigidBody = GetComponent<Rigidbody>();
         audioSource = GetComponent<AudioSource>();
-
+        GameObject.FindGameObjectWithTag("Music").GetComponent<MusicClass>().PlayMusic();
     }
 
     // Update is called once per frame
@@ -37,12 +40,30 @@ public class Rocket : MonoBehaviour
         {
             RespondToThrust();
             RespondToRotate();
+            
+        }
+        if (Debug.isDebugBuild)
+        {
+            RespondToDebugKeys();
+        }
+
+    }
+
+    private void RespondToDebugKeys()
+    {
+        if (Input.GetKeyDown(KeyCode.L))
+        {
+            LoadNextScene();
+        }
+        else if (Input.GetKeyDown(KeyCode.C))
+        {
+            collisionDisabled = !collisionDisabled; // toggle
         }
     }
 
     void OnCollisionEnter(Collision collision)
     {
-        if (state != State.Alive)
+        if (state != State.Alive || collisionDisabled)
         {
             return;
         }
@@ -82,21 +103,42 @@ public class Rocket : MonoBehaviour
 
     void LoadDefaultScene()
     {
-
-        SceneManager.LoadScene(0);
+        int currentSceneIndex = SceneManager.GetActiveScene().buildIndex;
+        SceneManager.LoadScene(currentSceneIndex);
     }
 
     void LoadNextScene()
     {
-
-        SceneManager.LoadScene(1);
+        
+        int currentSceneIndex = SceneManager.GetActiveScene().buildIndex;
+        int nextSceneIndex = currentSceneIndex + 1;
+        if(nextSceneIndex == SceneManager.sceneCountInBuildSettings)
+        {
+            nextSceneIndex = 0;
+        }
+        SceneManager.LoadScene(nextSceneIndex);
     }
 
     void RespondToThrust()
     {
-        if (Input.GetKey(KeyCode.Space))
+        /*if (Input.GetKey(KeyCode.Space))
         {
             ApplyThrust();
+        }
+         else
+        {
+            audioSource.Stop();
+            engineParticle.Stop();
+        }*/
+        float thrust = Input.GetAxis("Vertical") * thrustPower;
+        rigidBody.AddRelativeForce(Vector3.up * thrust);
+        if ((Input.GetAxis("Vertical") != 0 || (Input.GetAxis("Strafe")) != 0))
+        {
+            if (!audioSource.isPlaying)
+            {
+                audioSource.PlayOneShot(engineSound);
+            }
+            engineParticle.Play();
         }
         else
         {
@@ -105,15 +147,7 @@ public class Rocket : MonoBehaviour
         }
     }
 
-    void ApplyThrust()
-    {
-        rigidBody.AddRelativeForce(Vector3.up * thrustPower);
-        if (!audioSource.isPlaying)
-        {
-            audioSource.PlayOneShot(engineSound);
-        }
-        engineParticle.Play();
-    }
+
 
     void RespondToRotate()
     {
@@ -121,16 +155,37 @@ public class Rocket : MonoBehaviour
 
         float rotationSpeed = rcsThrust * Time.deltaTime;
 
-        if (Input.GetKey(KeyCode.A))
+        float rotation = Input.GetAxis("Horizontal") * rotationSpeed;
+        transform.Rotate(0, 0, -rotation);
+        // float dive = Input.GetAxis("Dive") * rotationSpeed;
+        // transform.Rotate(dive,0,0);
+
+        /*if (Input.GetAxisRaw("Dive") != 0)
         {
-            transform.Rotate(Vector3.forward * rotationSpeed);
+            float dive = Input.GetAxis("Dive") * rotationSpeed;
+            if (m_isAxisInUse == false)
+            {
+                transform.Rotate(dive, 0, 0);
+                m_isAxisInUse = true;
+            }
         }
-        else if (Input.GetKey(KeyCode.D))
+        if (Input.GetAxisRaw("Dive") == 0)
         {
-            transform.Rotate(-Vector3.forward * rotationSpeed);
+            transform.Rotate(0, 0, 0);
+            m_isAxisInUse = false;
         }
-        rigidBody.freezeRotation = false;
+        */
+
+       
     }
 
+    void RepsondToStrafe()
+    {
+        float strafe = Input.GetAxis("Strafe") * thrustPower;
+        rigidBody.AddRelativeForce(Vector3.right * strafe);
+        
+    }
+
+    
    
 }
