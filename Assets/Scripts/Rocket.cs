@@ -25,7 +25,6 @@ public class Rocket : MonoBehaviour
 
     bool collisionDisabled = false;
 
-    // Start is called before the first frame update
     void Start()
     {
         rigidBody = GetComponent<Rigidbody>();
@@ -33,7 +32,6 @@ public class Rocket : MonoBehaviour
         GameObject.FindGameObjectWithTag("Music").GetComponent<MusicClass>().PlayMusic();
     }
 
-    // Update is called once per frame
     void Update()
     {
         if (state == State.Alive)
@@ -57,7 +55,7 @@ public class Rocket : MonoBehaviour
         }
         else if (Input.GetKeyDown(KeyCode.C))
         {
-            collisionDisabled = !collisionDisabled; // toggle
+            collisionDisabled = !collisionDisabled;
         }
     }
 
@@ -121,15 +119,6 @@ public class Rocket : MonoBehaviour
 
     void RespondToThrust()
     {
-        /*if (Input.GetKey(KeyCode.Space))
-        {
-            ApplyThrust();
-        }
-         else
-        {
-            audioSource.Stop();
-            engineParticle.Stop();
-        }*/
         float thrust = Input.GetAxis("Vertical") * thrustPower;
         rigidBody.AddRelativeForce(Vector3.up * thrust);
         if ((Input.GetAxis("Vertical") != 0 || (Input.GetAxis("Strafe")) != 0))
@@ -157,26 +146,6 @@ public class Rocket : MonoBehaviour
 
         float rotation = Input.GetAxis("Horizontal") * rotationSpeed;
         transform.Rotate(0, 0, -rotation);
-        // float dive = Input.GetAxis("Dive") * rotationSpeed;
-        // transform.Rotate(dive,0,0);
-
-        /*if (Input.GetAxisRaw("Dive") != 0)
-        {
-            float dive = Input.GetAxis("Dive") * rotationSpeed;
-            if (m_isAxisInUse == false)
-            {
-                transform.Rotate(dive, 0, 0);
-                m_isAxisInUse = true;
-            }
-        }
-        if (Input.GetAxisRaw("Dive") == 0)
-        {
-            transform.Rotate(0, 0, 0);
-            m_isAxisInUse = false;
-        }
-        */
-
-       
     }
 
     void RepsondToStrafe()
